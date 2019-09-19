@@ -1,0 +1,1 @@
+docker exec -it kafka sh -c 'kafka-console-consumer --bootstrap-server kafka:9092 --topic foo --from-beginning --max-messages 10'

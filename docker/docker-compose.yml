@@ -26,12 +26,14 @@ services:
       - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
     networks: 
       - confluent
-  
-  sentiment:
-    image: graham3333/corenlp-complete
-    container_name: sentiment
+
+  spark:
+    image: antlypls/spark:1.5.1
+    container_name: spark
+    command: /etc/bootstrap.sh
+    volumes:
+      - ./volumes/spark:/app
     networks: 
       - confluent
-
 networks:
   confluent:

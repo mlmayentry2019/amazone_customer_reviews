@@ -26,6 +26,12 @@ services:
       - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
     networks: 
       - confluent
+  
+  sentiment:
+    image: graham3333/corenlp-complete
+    container_name: sentiment
+    networks: 
+      - confluent
 
 networks:
   confluent:

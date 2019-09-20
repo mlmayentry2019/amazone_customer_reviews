@@ -193,7 +193,7 @@ public class CustomerReview implements Serializable {
 			HBaseAdmin.checkHBaseAvailable(config);
 			System.out.println("HBase is running!");
 
-			Connection connection = ConnectionFactory.createConnection(config);
+			/* Connection connection = ConnectionFactory.createConnection(config);
 			Admin admin = connection.getAdmin();
 
 			HTableDescriptor table = new HTableDescriptor(TableName.valueOf(TABLE_NAME));
@@ -202,7 +202,7 @@ public class CustomerReview implements Serializable {
 			if (!admin.tableExists(table.getTableName())) {
 				System.out.print("Creating table.... ");
 				admin.createTable(table);
-			}
+			} */
 
 			config.set(TableInputFormat.INPUT_TABLE, TABLE_NAME);
 

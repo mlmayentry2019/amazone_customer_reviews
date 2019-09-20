@@ -13,6 +13,9 @@ import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaPairInputDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 import org.apache.spark.streaming.kafka.KafkaUtils;
+
+import cs523.sparksql.CustomerReview;
+import cs523.sparksql.CustomerReview.HbaseTable;
 import scala.Tuple2;
 
 public class KafkaSparkStreamReceiver {
@@ -26,6 +29,7 @@ public class KafkaSparkStreamReceiver {
     Set<String> topicName = Collections.singleton("gkcodelabs");
     JavaPairInputDStream<String, String> kafkaSparkPairInputDStream = KafkaUtils.createDirectStream(ssc, String.class,
         String.class, StringDecoder.class, StringDecoder.class, kafkaParams, topicName);
+
     JavaDStream<String> kafkaSparkInputDStream = kafkaSparkPairInputDStream
         .map(new Function<Tuple2<String, String>, String>() {
           private static final long serialVersionUID = 1L;
@@ -34,6 +38,14 @@ public class KafkaSparkStreamReceiver {
             return tuple2._2();
           }
         });
+    JavaDStream<CustomerReview> reviews = kafkaSparkInputDStream.map(CustomerReview::Parser);
+
+    reviews.foreachRDD(rdd -> {
+      if (!rdd.isEmpty()) {
+        HbaseTable.SaveToHbase(rdd);
+      }
+    });
+
     kafkaSparkInputDStream.print();
     ssc.start();
     ssc.awaitTermination();

@@ -7,26 +7,11 @@ services:
       - "1234:1234"
     networks: 
       - confluent
-
-  zookeeper:
-    image: confluentinc/cp-zookeeper:5.0.0
-    container_name: zookeeper
-    environment: 
-      - ZOOKEEPER_CLIENT_PORT=2181
+  kafka-hadoop:
+    build: ./kafka-hadoop
+    container_name: kafka-hadoop
     networks: 
       - confluent
-
-  kafka:
-    image: confluentinc/cp-kafka:5.0.0
-    container_name: kafka
-    environment: 
-      - ZOOKEEPER_CLIENT_PORT=2181
-      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
-      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
-      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
-    networks: 
-      - confluent
-  
   sentiment:
     image: graham3333/corenlp-complete
     container_name: sentiment

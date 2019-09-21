@@ -24,6 +24,8 @@ services:
       - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
       - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
       - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+    ports:
+      - "9092:9092"
     networks: 
       - confluent
   
@@ -32,6 +34,16 @@ services:
     container_name: sentiment
     networks: 
       - confluent
-
+  spark:
+    image: hoanglt705/spark-optimize
+    container_name: spark
+    privileged: true
+    hostname: quickstart.cloudera
+    command: /usr/bin/docker-quickstart
+    tty: true
+    stdin_open: true  
+    networks: 
+      - confluent
 networks:
   confluent:
+    name: confluent

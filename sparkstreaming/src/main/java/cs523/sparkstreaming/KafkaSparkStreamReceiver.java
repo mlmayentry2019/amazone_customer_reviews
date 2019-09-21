@@ -14,8 +14,6 @@ import org.apache.spark.streaming.api.java.JavaPairInputDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 import org.apache.spark.streaming.kafka.KafkaUtils;
 
-import cs523.sparksql.CustomerReview;
-import cs523.sparksql.CustomerReview.HbaseTable;
 import scala.Tuple2;
 
 public class KafkaSparkStreamReceiver {
@@ -24,9 +22,11 @@ public class KafkaSparkStreamReceiver {
     JavaSparkContext sc = new JavaSparkContext(sparkConf);
     JavaStreamingContext ssc = new JavaStreamingContext(sc, new Duration(5000));
     Map<String, String> kafkaParams = new HashMap<String, String>();
-    kafkaParams.put("bootstrap.servers", "localhost:9092");
+    String server = args[0];
+    String topic = args[1];
+    kafkaParams.put("bootstrap.servers", "kafka:9092");
     kafkaParams.put("group.id", "1");
-    Set<String> topicName = Collections.singleton("gkcodelabs");
+    Set<String> topicName = Collections.singleton("foo");
     JavaPairInputDStream<String, String> kafkaSparkPairInputDStream = KafkaUtils.createDirectStream(ssc, String.class,
         String.class, StringDecoder.class, StringDecoder.class, kafkaParams, topicName);
 
@@ -38,14 +38,6 @@ public class KafkaSparkStreamReceiver {
             return tuple2._2();
           }
         });
-    JavaDStream<CustomerReview> reviews = kafkaSparkInputDStream.map(CustomerReview::Parser);
-
-    reviews.foreachRDD(rdd -> {
-      if (!rdd.isEmpty()) {
-        HbaseTable.SaveToHbase(rdd);
-      }
-    });
-
     kafkaSparkInputDStream.print();
     ssc.start();
     ssc.awaitTermination();

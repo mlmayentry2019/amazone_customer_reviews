@@ -10,6 +10,9 @@ services:
   kafka-hadoop:
     build: ./kafka-hadoop
     container_name: kafka-hadoop
+    privileged: true
+    working_dir: /home/cloudera/workspace
+    command: bash -c "service kafka-server start && /usr/bin/docker-quickstart"
     networks: 
       - confluent
   sentiment:

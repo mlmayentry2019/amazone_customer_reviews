@@ -7,12 +7,12 @@ services:
       - "1234:1234"
     networks: 
       - confluent
-  kafka-hadoop:
+  spark:
     build: ./kafka-hadoop
-    container_name: kafka-hadoop
+    container_name: spark
     privileged: true
     working_dir: /home/cloudera/workspace
-    command: bash -c "service kafka-server start && /usr/bin/docker-quickstart"
+    command: bash -c "service kafka-server start && service zookeeper-server start  && service hadoop-hdfs-datanode start && service hadoop-hdfs-journalnode start && service hadoop-hdfs-namenode start && service hadoop-hdfs-secondarynamenode start && service hadoop-httpfs start && service hadoop-yarn-nodemanager start && service hadoop-yarn-resourcemanager start && service hbase-master start && service hbase-thrift start && service hbase-regionserver start && service oozie start && exec bash"
     networks: 
       - confluent
   sentiment:

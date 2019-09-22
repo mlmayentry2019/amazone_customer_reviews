@@ -24,9 +24,9 @@ public class KafkaSparkStreamReceiver {
     Map<String, String> kafkaParams = new HashMap<String, String>();
     String server = args[0];
     String topic = args[1];
-    kafkaParams.put("bootstrap.servers", "kafka:9092");
+    kafkaParams.put("bootstrap.servers", server + ":9092");
     kafkaParams.put("group.id", "1");
-    Set<String> topicName = Collections.singleton("foo");
+    Set<String> topicName = Collections.singleton(topic);
     JavaPairInputDStream<String, String> kafkaSparkPairInputDStream = KafkaUtils.createDirectStream(ssc, String.class,
         String.class, StringDecoder.class, StringDecoder.class, kafkaParams, topicName);
 

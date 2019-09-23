@@ -24,7 +24,6 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.PairFunction;
-
 import org.apache.hadoop.hbase.mapreduce.TableSplit;
 import org.apache.hadoop.hbase.util.Base64;
 import org.apache.spark.api.java.JavaSparkContext;
@@ -38,6 +37,11 @@ import org.apache.hadoop.hbase.mapreduce.TableOutputFormat;
 
 import org.apache.hadoop.hbase.protobuf.ProtobufUtil;
 import org.apache.hadoop.hbase.protobuf.generated.ClientProtos;
+
+import org.apache.spark.sql.DataFrame;
+import org.apache.spark.sql.SQLContext;
+import org.apache.spark.sql.hive.HiveContext;
+
 import scala.Tuple10;
 
 import java.util.ArrayList;
@@ -182,6 +186,8 @@ public class CustomerReview implements Serializable {
 		private static final String COL_REVIEW_HEADLINE = "review_headline";
 		private static final String COL_REVIEW_BODY = "review_body";
 		private static final String COL_REVIEW_DATE = "review_date";
+		
+		private static SQLContext _sqlContext;
 
 		public static void SaveToHbase(JavaRDD<CustomerReview> reviewRecords)
 				throws MasterNotRunningException, Exception {
@@ -193,7 +199,7 @@ public class CustomerReview implements Serializable {
 			HBaseAdmin.checkHBaseAvailable(config);
 			System.out.println("HBase is running!");
 
-			/* Connection connection = ConnectionFactory.createConnection(config);
+			Connection connection = ConnectionFactory.createConnection(config);
 			Admin admin = connection.getAdmin();
 
 			HTableDescriptor table = new HTableDescriptor(TableName.valueOf(TABLE_NAME));
@@ -202,7 +208,7 @@ public class CustomerReview implements Serializable {
 			if (!admin.tableExists(table.getTableName())) {
 				System.out.print("Creating table.... ");
 				admin.createTable(table);
-			} */
+			}
 
 			config.set(TableInputFormat.INPUT_TABLE, TABLE_NAME);
 
@@ -278,7 +284,7 @@ public class CustomerReview implements Serializable {
 			// JavaSparkContext jsc = new JavaSparkContext(sparkConf);
 
 			Configuration conf = HBaseConfiguration.create();
-
+			
 			Scan scan = new Scan();
 			scan.addFamily(Bytes.toBytes(CF_DEFAULT));
 
@@ -352,6 +358,8 @@ public class CustomerReview implements Serializable {
 							byte[] review_date = results._2().getValue(Bytes.toBytes(CF_DEFAULT),
 									Bytes.toBytes(COL_REVIEW_DATE));
 
+							//if(!Bytes.toString(marketplace).equals(COL_MARKET_PLACE))
+							//{
 							CustomerReview review = new CustomerReview(Bytes.toString(marketplace),
 									Bytes.toString(customer_id), Bytes.toString(review_id), Bytes.toString(product_id),
 									Bytes.toString(product_parent), Bytes.toString(product_title),
@@ -361,9 +369,139 @@ public class CustomerReview implements Serializable {
 									Bytes.toString(review_body), Bytes.toString(review_date));
 
 							return new Tuple2<String, CustomerReview>(Bytes.toString(results._1().get()), review);
+							//}
 						}
 					});
-			return review_records;
+			
+			_sqlContext = new SQLContext(jsc);
+			_sqlContext.createDataFrame(review_records.values(), CustomerReview.class).registerTempTable(TABLE_NAME);
+		    
+		    //df.registerTempTable(TABLE_NAME);
+			//_sqlContext.setLogLevel("OFF");
+		    return review_records;
+		}
+		
+		public static DataFrame get_verified_purchase()
+		{
+			return exce_sql(sql_verified_purchase());
+		}
+		public static DataFrame get_ratings_marketplace()
+		{
+			return exce_sql(sql_ratings_marketplace());
+		}
+		public static DataFrame get_vine()
+		{
+			return exce_sql(sql_vine());
+		}
+		public static DataFrame get_product_category_rateing()
+		{
+			return exce_sql(sql_product_category_rateing());
+		}
+		public static DataFrame get_helpful_rateing()
+		{
+			return exce_sql(sql_helpful_rateing());
+		}
+		public static DataFrame get_customer_rateing()
+		{
+			return exce_sql(sql_customer_rating());
+		}
+		public static DataFrame get_customer_rateing_verified()
+		{
+			return exce_sql(sql_customer_rating_verified());
+		}
+		public static DataFrame get_helpful_votes()
+		{
+			return exce_sql(sql_helpful_votes());
+		}
+		private static DataFrame exce_sql(String sql)
+		{  
+		    //DataFrame df = _sqlContext.createDataFrame(records.values(), CustomerReview.class);
+		    
+		    //df.registerTempTable(TABLE_NAME);
+		    
+			return _sqlContext.sql(sql);
+		}
+		private static String sql_helpful_votes() 
+		{
+			return "select * from " + TABLE_NAME +" " + 
+					"order by helpful_votes " + 
+					"desc limit 15";
+		}
+		private static String sql_customer_rating_verified() 
+		{
+			return "select customer_id, " + 
+					"count(*) AS COUNT, " + 
+					"count(distinct product_category) cats, " + 
+					"cast(avg(cast(star_rating as decimal(5,4))) as decimal (3,2)) avg_rating, " + 
+					"cast(avg(cast (helpful_votes as decimal (18,4))) as decimal (16,2)) avg_help, " + 
+					"sum(case when star_rating = 1 then 1 else 0 end) one, " + 
+					"sum(case when star_rating = 2 then 1 else 0 end) two, " + 
+					"sum(case when star_rating = 3 then 1 else 0 end) three, " + 
+					"sum(case when star_rating = 4 then 1 else 0 end) four, " + 
+					"sum(case when star_rating = 5 then 1 else 0 end) five, " + 
+					"sum(case when vine = 'Y' then 1 else 0 end) vine_reviews, " + 
+					"sum(case when verified_purchase = 'Y' then 1 else 0 end) verified_purchases " + 
+					"from "+ TABLE_NAME +" " + 
+					"group by customer_id, 1 " + 
+					"order by 2 desc " + 
+					"limit 10";
+		}
+		private static String sql_customer_rating() 
+		{
+			return "select customer_id, " + 
+					"count(*) as COUNT, " + 
+					"count(distinct product_category) cats, " + 
+					"cast(avg(cast(star_rating as decimal(5,4))) as decimal (3,2)) avg_rating, " + 
+					"sum(case when star_rating = 1 then 1 else 0 end) one, " + 
+					"sum(case when star_rating = 2 then 1 else 0 end) two, " + 
+					"sum(case when star_rating = 3 then 1 else 0 end) three, " + 
+					"sum(case when star_rating = 4 then 1 else 0 end) four, " + 
+					"sum(case when star_rating = 5 then 1 else 0 end) five " + 
+					"from "+ TABLE_NAME +" " + 
+					"group by customer_id, 1 " + 
+					"order by 2 desc " + 
+					"limit 10";
+		}
+		private static String sql_helpful_rateing() 
+		{
+			return "select star_rating, " + 
+					"cast(avg(cast (helpful_votes as decimal (18,4))) as decimal (16,2)) AVG_HELP, " + 
+					"count(*) AS COUNT " + 
+					"from "+ TABLE_NAME +" " + 
+					"group by star_rating, 1 " + 
+					"order by 1";
+		}
+		private static String sql_product_category_rateing() 
+		{
+			return "select product_category, " + 
+					"cast(avg(cast(star_rating as decimal(5,4))) as decimal (3,2)) avg_rating, " + 
+					"count(*) AS COUNT " + 
+					"from "+ TABLE_NAME +" " + 
+					"group by product_category, 1 " + 
+					"order by 2";
+		}
+		private static String sql_vine()
+		{
+			return "select vine, "+
+			"cast(avg(cast(star_rating as decimal(5,4))) as decimal (3,2)) avg_rating, "+
+			"count(*) as COUNT "+
+			" from "+ TABLE_NAME +
+			" group by vine, 1"+ 
+			" order by 1";
+		}
+		private static String sql_ratings_marketplace()
+		{
+			return "select marketplace, "+
+					"cast(avg(cast(star_rating as decimal(5,4))) as decimal (3,2)) avg_rating, "+
+					"count(*) as COUNT "+
+					"from "+TABLE_NAME+" group by marketplace, 1 order by 1";
+		}
+		private static String sql_verified_purchase()
+		{
+			return "select verified_purchase, "+
+					"cast(avg(cast(star_rating as decimal(5,4))) as decimal (3,2)) avg_rating,"+
+					"count(*) as COUNT "+
+					"from "+TABLE_NAME+" group by verified_purchase, 1 order by 1 ";
 		}
 	}
 }

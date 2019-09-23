@@ -1,33 +1,19 @@
 package cs523.sparksql;
 
-import java.util.logging.Level;
-
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.Path;
 import org.apache.spark.SparkConf;
-import org.apache.spark.api.java.JavaPairRDD;
-import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.DataFrame;
+
 import cs523.sparksql.CustomerReview.HbaseTable;
-import scala.Tuple2;
 
 public class SparkHBaseSQL {
 	public static void main(String[] args) throws Exception {
 		// Create a Java Spark Context
 		JavaSparkContext sc = new JavaSparkContext(new SparkConf().setAppName("SparkHBaseSQL").setMaster("local"));
 		sc.setLogLevel("OFF");
-		// Load our input data
-		//JavaRDD<String> reviewLines = sc.textFile(args[0]);
-
-		//JavaRDD<CustomerReview> reviews = reviewLines.map(CustomerReview::Parser).cache();
-		
-		
-		//write to hbase example 
-		//HbaseTable.SaveToHbase(reviews);
 		
 		//read from hbase example 
-		JavaPairRDD<String, CustomerReview> records = HbaseTable.ReadFromHbase(sc);
+		HbaseTable.ReadFromHbase(sc);
 		System.out.println("** How do ratings vary with verified_purchase? **");
 		DataFrame df1 = HbaseTable.get_verified_purchase();
 		df1.show();
@@ -59,10 +45,6 @@ public class SparkHBaseSQL {
 		System.out.println("Which review is the most helpful in Amazon...?");
 		DataFrame df8 = HbaseTable.get_helpful_votes();
 		df8.show();
-		//System.out.println("begin print record .... ");
-		//records.foreach(f->System.out.println(f._1().toString()));
-		//System.out.println("end print record .... ");
-
 		sc.close();
 	}
 

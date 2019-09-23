@@ -1,5 +1,6 @@
 package cs523.sparkstreaming;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,6 +15,7 @@ import org.apache.spark.streaming.api.java.JavaPairInputDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 import org.apache.spark.streaming.kafka.KafkaUtils;
 
+import cs523.sentiment.SentimentClient;
 import scala.Tuple2;
 
 public class KafkaSparkStreamReceiver {
@@ -35,7 +37,15 @@ public class KafkaSparkStreamReceiver {
           private static final long serialVersionUID = 1L;
 
           public String call(Tuple2<String, String> tuple2) {
-            return tuple2._2();
+            try {
+              String evaluate = (new SentimentClient()).request((String)tuple2._2()).substring(34).startsWith("Positive") ? "Positive" : "Negative";
+         
+              
+              return (String)tuple2._2() + " - " + evaluate.toUpperCase();
+            } catch (IOException e) {
+              e.printStackTrace();
+              return "ERROR";
+            } 
           }
         });
     kafkaSparkInputDStream.print();

@@ -12,46 +12,31 @@ import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.MasterNotRunningException;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Admin;
-import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.ConnectionFactory;
 import org.apache.hadoop.hbase.client.HBaseAdmin;
+import org.apache.hadoop.hbase.client.Put;
+import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.hbase.io.compress.Compression.Algorithm;
-import org.apache.hadoop.hbase.client.Put;
+import org.apache.hadoop.hbase.mapreduce.TableInputFormat;
+import org.apache.hadoop.hbase.mapreduce.TableOutputFormat;
+import org.apache.hadoop.hbase.protobuf.ProtobufUtil;
+import org.apache.hadoop.hbase.protobuf.generated.ClientProtos;
+import org.apache.hadoop.hbase.util.Base64;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.api.java.function.PairFunction;
-import org.apache.hadoop.hbase.mapreduce.TableSplit;
-import org.apache.hadoop.hbase.util.Base64;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.SparkConf;
-import org.apache.spark.api.java.function.Function;
-import org.apache.spark.api.java.function.Function2;
-import org.apache.hadoop.hbase.client.Scan;
-import org.apache.hadoop.hbase.client.Result;
-import org.apache.hadoop.hbase.mapreduce.TableInputFormat;
-import org.apache.hadoop.hbase.mapreduce.TableOutputFormat;
-
-import org.apache.hadoop.hbase.protobuf.ProtobufUtil;
-import org.apache.hadoop.hbase.protobuf.generated.ClientProtos;
-
+import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.SQLContext;
-import org.apache.spark.sql.hive.HiveContext;
-
-import scala.Tuple10;
-
-import java.util.ArrayList;
 
 import scala.Tuple2;
 
 public class CustomerReview implements Serializable {
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 	private String marketplace;
 	private String customer_id;
@@ -189,6 +174,7 @@ public class CustomerReview implements Serializable {
 		
 		private static SQLContext _sqlContext;
 
+		@Deprecated
 		public static void SaveToHbase(JavaRDD<CustomerReview> reviewRecords)
 				throws MasterNotRunningException, Exception {
 			
@@ -219,6 +205,7 @@ public class CustomerReview implements Serializable {
 
 			// create Key, Value pair to store in HBase
 			JavaPairRDD<ImmutableBytesWritable, Put> hbasePuts = reviewRecords
+
 					.mapToPair(new PairFunction<CustomerReview, ImmutableBytesWritable, Put>() {
 						/**
 						 * 

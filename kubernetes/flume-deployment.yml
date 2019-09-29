@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flume-deployment
+  labels:
+    app: flume
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: flume-pod 
+      app: flume-app
+  template:
+    metadata:
+      name: flume-pod
+      labels:
+        name: flume-pod
+        app: flume-app
+    spec:
+      containers:
+      - name: flume
+        image: hoanglt705/flume:kafka
+        ports:
+        - containerPort: 1234

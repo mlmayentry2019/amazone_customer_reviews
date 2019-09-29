@@ -1,1 +1,1 @@
-curl -X POST -H 'Content-Type: application/json; charset=UTF-8' -d '[{"body":"hello world"}]' localhost:1234
+curl -X POST -H 'Content-Type: application/json; charset=UTF-8' -d '[{"body":"hello world"}]' localhost:1234 -i

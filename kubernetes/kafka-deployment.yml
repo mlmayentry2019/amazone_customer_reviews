@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: kafka-deployment
   labels:
-    app: kafka
+    app: kafka-app
 spec:
   replicas: 1
   selector:
@@ -20,14 +20,13 @@ spec:
       containers:
       - name: kafka
         image: confluentinc/cp-kafka:5.0.0
+        command: ["bash", "-c", "unset KAFKA_REST_PORT; /etc/confluent/docker/run"]
         env:
           - name: ZOOKEEPER_CLIENT_PORT
             value: "2181"
           - name: KAFKA_ZOOKEEPER_CONNECT
             value: "zookeeper:2181"
           - name: KAFKA_ADVERTISED_LISTENERS
-            value: "PLAINTEXT://kafka:9092"
+            value: "PLAINTEXT://kafka-service:9092"
           - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
             value: "1"
-        ports:
-        - containerPort: 9092

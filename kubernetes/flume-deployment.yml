@@ -22,3 +22,7 @@ spec:
         image: hoanglt705/flume:kafka
         ports:
         - containerPort: 1234
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "500Mi"

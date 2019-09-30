@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sentiment-deployment
+  labels:
+    app: sentiment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: sentiment-pod 
+      app: sentiment-app
+  template:
+    metadata:
+      name: sentiment-pod
+      labels:
+        name: sentiment-pod
+        app: sentiment-app
+    spec:
+      containers:
+      - name: sentiment
+        image: graham3333/corenlp-complete
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "500Mi"

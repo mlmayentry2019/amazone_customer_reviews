@@ -4,3 +4,7 @@ kubectl delete deployments kafka-deployment
 kubectl delete services kafka-service
 kubectl delete deployments zookeeper-deployment
 kubectl delete services zookeeper
+kubectl delete deployments spark-deployment
+kubectl delete services spark
+kubectl delete deployments sentiment-deployment
+kubectl delete services sentiment

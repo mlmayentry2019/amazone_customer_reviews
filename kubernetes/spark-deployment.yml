@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spark-deployment
+  labels:
+    app: spark
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: spark-pod 
+      app: spark-app
+  template:
+    metadata:
+      name: spark-pod
+      labels:
+        name: spark-pod
+        app: spark-app
+    spec:
+      containers:
+      - name: spark
+        image: hoanglt705/spark-optimize
+        command: ["/usr/bin/docker-quickstart"]
+        securityContext:
+            allowPrivilegeEscalation: true
+        stdin: true
+        tty: true
